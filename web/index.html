@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Train-a-Bot Arcade</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="hdr">
+  <button class="logo" data-go="title" title="Home">
+    <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><rect x="6" y="9" width="20" height="16" rx="5" fill="#3be8ff"/><rect x="9" y="12" width="14" height="8" rx="3" fill="#0b1030"/><rect x="11.5" y="14.5" width="3" height="3" rx="1" fill="#7dffb2"/><rect x="17.5" y="14.5" width="3" height="3" rx="1" fill="#7dffb2"/><line x1="16" y1="9" x2="16" y2="4" stroke="#3be8ff" stroke-width="2"/><circle cx="16" cy="3.5" r="2.2" fill="#ff4fd8"/></svg>
+    <span>Train-a-Bot <b>Arcade</b></span>
+  </button>
+  <nav id="tabs">
+    <button data-go="play">1 · Play</button>
+    <button data-go="train">2 · Train the Bot</button>
+    <button data-go="compare">3 · You vs Bot</button>
+  </nav>
+  <div class="hdr-right">
+    <div class="seg" id="diff-seg" title="Difficulty">
+      <button data-diff="easy">Easy</button><button data-diff="normal">Normal</button><button data-diff="hard">Hard</button>
+    </div>
+    <select id="track-sel" title="Track"></select>
+    <button id="btn-mute" class="icon" title="Mute (M)">Sound on</button>
+    <button id="btn-help" class="icon" title="Help (H)">? Help</button>
+  </div>
+</header>
+
+<main>
+  <div id="stage">
+    <canvas id="game" width="480" height="704"></canvas>
+    <div id="stage-over" class="hidden">
+      <div class="over-card">
+        <div class="over-title" id="over-title">CRASHED!</div>
+        <div class="over-score"><span id="over-score">0</span><small>points</small></div>
+        <div class="over-line" id="over-detail"></div>
+        <div class="over-line" id="over-best"></div>
+        <div class="over-vs" id="over-vs"></div>
+        <div class="over-btns">
+          <button class="btn primary" id="btn-retry">Retry <kbd>Space</kbd></button>
+          <button class="btn" id="btn-over-watch">Watch the bot <kbd>W</kbd></button>
+          <button class="btn" id="btn-over-train">Train it <kbd>T</kbd></button>
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="hidden"></div>
+  </div>
+
+  <section id="panel">
+    <!-- TITLE -->
+    <div class="tab" id="tab-title">
+      <div class="hero">
+        <div class="hero-kicker">Arcade · Machine Learning Lab</div>
+        <h1>TRAIN-A-BOT<br><span>ARCADE</span></h1>
+        <p class="hero-sub">Dodge the firewalls and grab the power cells. Then teach a little robot to play, and watch it go from crashing right away to beating your high score.</p>
+        <div class="hero-btns">
+          <button class="btn big primary" id="btn-start" data-go="play">Play <kbd>Space</kbd></button>
+          <button class="btn big" data-go="train">Train the Bot</button>
+          <button class="btn big" data-go="compare">You vs Bot</button>
+          <button class="btn big ghost" id="btn-title-help">How it works</button>
+        </div>
+        <div class="hero-cards">
+          <div class="hcard"><b>1. Play it</b><span>Use the arrow keys to switch lanes. Every row you survive is +1 and every cell is +10.</span></div>
+          <div class="hcard"><b>2. Train it</b><span>The bot practices thousands of runs and keeps a cheat sheet of which moves pay off (Q-learning).</span></div>
+          <div class="hcard"><b>3. Beat it</b><span>Same track, same seed. Can you outscore the bot, or race its ghost?</span></div>
+        </div>
+        <div class="hero-foot">Works offline. Your scores and trained bots are saved in this browser. <b>M</b> mutes · <b>H</b> help</div>
+      </div>
+    </div>
+
+    <!-- PLAY -->
+    <div class="tab" id="tab-play">
+      <h2>Play <small>Dodge the firewalls</small></h2>
+      <div class="track-grid" id="track-grid"></div>
+      <div class="row gap">
+        <label class="toggle"><input type="checkbox" id="chk-ghost"> <span>Race the bot's ghost</span></label>
+        <button class="btn big primary" id="btn-play">Start run <kbd>Space</kbd></button>
+        <button class="btn" id="btn-pause">Pause <kbd>P</kbd></button>
+      </div>
+      <div class="stats" id="play-stats">
+        <div class="stat"><b id="ps-score">0</b><span>score</span></div>
+        <div class="stat"><b id="ps-rows">0</b><span>rows</span></div>
+        <div class="stat"><b id="ps-cells">0</b><span>cells</span></div>
+        <div class="stat"><b id="ps-speed">0</b><span>rows / sec</span></div>
+        <div class="stat"><b id="ps-best">-</b><span>your best here</span></div>
+        <div class="stat bot"><b id="ps-ai">-</b><span>bot best here</span></div>
+      </div>
+      <div class="controls-card">
+        <div><kbd>&larr;</kbd><kbd>&rarr;</kbd> or <kbd>A</kbd><kbd>D</kbd> switch lanes</div>
+        <div><kbd>Space</kbd> start / retry · <kbd>P</kbd> pause · <kbd>M</kbd> mute · <kbd>H</kbd> help</div>
+        <div class="muted">Careful: sliding into a firewall that's right beside you counts as a crash. One lane change per row, just like the bot.</div>
+      </div>
+    </div>
+
+    <!-- TRAIN -->
+    <div class="tab" id="tab-train">
+      <h2>Train the Bot <small id="brain-title">Normal brain</small></h2>
+      <div class="stats" id="train-stats">
+        <div class="stat"><b id="ts-ep">0</b><span>practice runs</span></div>
+        <div class="stat"><b id="ts-eps">100%</b><span>curiosity (random moves)</span></div>
+        <div class="stat"><b id="ts-avg">0</b><span>avg score, last 100</span></div>
+        <div class="stat"><b id="ts-best">0</b><span>best practice run</span></div>
+        <div class="stat"><b id="ts-states">0</b><span>situations learned</span></div>
+        <div class="stat bot"><b id="ts-track">-</b><span id="ts-track-l">score on track</span></div>
+      </div>
+      <div class="row gap8">
+        <span class="lbl">Runs</span>
+        <div class="seg" id="ep-seg"><button data-n="500">+500</button><button data-n="2000">+2,000</button><button data-n="5000">+5,000</button></div>
+        <span class="lbl">Pace</span>
+        <div class="seg" id="pace-seg"><button data-pace="chill">Chill</button><button data-pace="fast">Fast</button><button data-pace="instant">Instant</button></div>
+        <button class="btn primary" id="btn-train">Train <kbd>T</kbd></button>
+        <button class="btn" id="btn-stop-train" disabled>Stop</button>
+        <button class="btn danger" id="btn-reset-brain" title="Wipe this difficulty's brain">Reset</button>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart" width="700" height="200"></canvas>
+        <div class="legend"><span class="lg dots"></span>each practice run <span class="lg avg"></span>average (last 50) <span class="lg eps"></span>curiosity <span class="lg you"></span>your best</div>
+      </div>
+      <div class="ckpt-head">Brain checkpoints <small>click one to watch that version of the bot play the selected track</small></div>
+      <div class="ckpts" id="ckpts"></div>
+      <div class="watchbar row gap wrap">
+        <span class="lbl">Watch speed</span>
+        <div class="seg" id="spd-seg"><button data-spd="1">1x</button><button data-spd="2">2x</button><button data-spd="4">4x</button><button data-spd="8">8x</button></div>
+        <button class="btn" id="btn-watch">Watch latest <kbd>W</kbd></button>
+        <button class="btn" id="btn-skip">Skip to end</button>
+        <button class="btn" id="btn-stop-watch">Stop</button>
+      </div>
+      <div class="thoughts" id="thoughts">
+        <div class="th-say" id="th-say">Train the bot, then watch it think. Its cheat-sheet scores for each move show up here.</div>
+        <div class="qbars">
+          <div class="qbar" id="qb-0"><span>Left</span><i></i><b>0</b></div>
+          <div class="qbar" id="qb-1"><span>Stay</span><i></i><b>0</b></div>
+          <div class="qbar" id="qb-2"><span>Right</span><i></i><b>0</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPARE -->
+    <div class="tab" id="tab-compare">
+      <h2>You vs Bot <small id="cmp-sub">same track, same seed</small></h2>
+      <div class="vs-card">
+        <div class="vs-side you"><span>YOU</span><b id="vs-you">-</b><div class="vs-bar"><i id="vs-you-bar"></i></div></div>
+        <div class="vs-mid" id="vs-verdict">Play a run and train the bot to see who wins.</div>
+        <div class="vs-side bot"><span>BOT</span><b id="vs-bot">-</b><div class="vs-bar"><i id="vs-bot-bar"></i></div></div>
+      </div>
+      <canvas id="cmp-chart" width="700" height="180"></canvas>
+      <table class="cmp-table" id="cmp-table">
+        <thead><tr><th>Track</th><th>Your best</th><th>Bot now</th><th>Bot best ever</th><th>Leader</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="row gap wrap">
+        <button class="btn primary" id="btn-race">Race the ghost here</button>
+        <button class="btn" id="btn-cmp-watch">Watch the bot run this track</button>
+        <button class="btn" id="btn-retest">Re-test bot on every track</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="help" class="hidden" role="dialog" aria-label="Help">
+  <div class="help-card">
+    <button class="close" id="btn-help-close" title="Close (Esc)">&times;</button>
+    <h2>How Train-a-Bot Arcade works</h2>
+    <div class="help-cols">
+      <div>
+        <h3>The game</h3>
+        <ul>
+          <li>Your robot races up a 5-lane neon road. Switch lanes with <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> (or <kbd>A</kbd>/<kbd>D</kbd>).</li>
+          <li>Red <b>firewalls</b> end your run. That includes sliding into one that's right beside you.</li>
+          <li>Each row you survive is <b>+1</b> and each yellow <b>power cell</b> is <b>+10</b>.</li>
+          <li>It speeds up the longer you last. Hard mode is fast and crowded.</li>
+          <li>Each named track uses a fixed seed, so the walls show up in the same places every time, for you and for the bot.</li>
+        </ul>
+        <h3>Keys</h3>
+        <p><kbd>Space</kbd> start/retry · <kbd>P</kbd> pause · <kbd>T</kbd> train · <kbd>W</kbd> watch bot · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tabs · <kbd>M</kbd> mute · <kbd>H</kbd> help · <kbd>Esc</kbd> close</p>
+      </div>
+      <div>
+        <h3>How the bot learns (Q-learning)</h3>
+        <ul>
+          <li><b>What it sees:</b> how far away the next firewall is in its own lane and the two lanes on each side (up to 4 rows ahead), plus which way the nearest power cell is. That adds up to 12,500 possible situations.</li>
+          <li><b>What it gets:</b> +1 for each row, +10 for each cell, <b>-100</b> for a crash.</li>
+          <li><b>The cheat sheet:</b> for every situation it keeps a score for Left, Stay and Right. After each move it nudges that score toward "what I got + how good the next situation looks."</li>
+          <li><b>Curiosity:</b> it starts out making 100% random moves so it can explore. As it gains experience it trusts the cheat sheet more, down to 2% random.</li>
+          <li><b>Mirror trick:</b> each lesson is also learned flipped left-to-right, which doubles what it learns from every run.</li>
+          <li>Checkpoints save copies of its brain along the way so you can watch it go from Newborn to Legend.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
