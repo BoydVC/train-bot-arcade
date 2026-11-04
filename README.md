@@ -1,6 +1,6 @@
 # Train-a-Bot Arcade
 
-An offline arcade game with a "watch the AI learn" lab, built for Char and Vic. First **you** steer a little robot up a 5-lane neon road, dodging firewalls and grabbing power cells. Then you **train a bot** to play the same game with real tabular Q-learning, watch its score chart climb, look inside its "brain" while it plays, and find out who wins on the exact same seeded track.
+An offline arcade game with a "watch the AI learn" lab, built for Alex and Sam. First **you** steer a little robot up a 5-lane neon road, dodging firewalls and grabbing power cells. Then you **train a bot** to play the same game with real tabular Q-learning, watch its score chart climb, look inside its "brain" while it plays, and find out who wins on the exact same seeded track.
 
 It ships as one HTML file with no network requests, no CDN and no accounts. Scores and trained brains save in `localStorage`.
 
@@ -8,7 +8,7 @@ It ships as one HTML file with no network requests, no CDN and no accounts. Scor
 
 ## Modes
 
-- **Play:** pick one of five named tracks (Neon Alley, Byte Canyon, Glitch Gulch, Char's Circuit, Vic's Velocity) or a Surprise seed, and pick Easy, Normal or Hard. Each row you survive is +1 and each power cell is +10. The road speeds up the longer you last. Sliding sideways into a firewall that's right beside you counts as a crash. Turn on **Race the bot's ghost** to see the trained bot's run on the same track as a pink ghost, with a marker where it crashed.
+- **Play:** pick one of five named tracks (Neon Alley, Byte Canyon, Glitch Gulch, Alex's Circuit, Sam's Velocity) or a Surprise seed, and pick Easy, Normal or Hard. Each row you survive is +1 and each power cell is +10. The road speeds up the longer you last. Sliding sideways into a firewall that's right beside you counts as a crash. Turn on **Race the bot's ghost** to see the trained bot's run on the same track as a pink ghost, with a marker where it crashed.
 - **Train the Bot:** add +500, +2,000 or +5,000 practice runs at a Chill (~18 s), Fast (~5 s) or Instant pace. The live chart shows the score for every run, a 50-run moving average, the curiosity (epsilon) curve, checkpoint markers and your best score as a line. A live practice feed plays on the game canvas while it trains. **Checkpoints** (Newborn at 10 runs, Rookie at 100, Learner at 500, Pro at 2,000, Legend at 5,000, plus Latest) save copies of the brain so you can replay any of them. In **watch mode** the bot plays at 1x, 2x, 4x or 8x with its vision box drawn on the road and a "thoughts" panel that shows what it sees, its Q-values for Left, Stay and Right, and the move it picks.
 - **You vs Bot:** your best against the bot's best on the same seed, a bar chart of how each checkpoint scores on that track, and a table across all five tracks with the leader on each. One click starts a ghost race.
 - Title screen with an attract-mode demo bot, a help modal (H), mute (M) and pause (P).
