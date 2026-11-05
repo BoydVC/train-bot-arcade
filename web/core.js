@@ -15,8 +15,8 @@
     { id: "neon-alley", name: "Neon Alley", seed: 1013 },
     { id: "byte-canyon", name: "Byte Canyon", seed: 2026 },
     { id: "glitch-gulch", name: "Glitch Gulch", seed: 777 },
-    { id: "char-circuit", name: "Char's Circuit", seed: 212 },
-    { id: "vic-velocity", name: "Vic's Velocity", seed: 623 },
+    { id: "char-circuit", name: "Alex's Circuit", seed: 212 },
+    { id: "vic-velocity", name: "Sam's Velocity", seed: 623 },
   ];
 
   function mulberry32(a) {
